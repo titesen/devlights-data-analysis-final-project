@@ -6,10 +6,10 @@ DROP TABLE IF EXISTS analytics.dim_employee;
 
 CREATE TABLE analytics.dim_employee AS
 SELECT 
-    employee_id AS employee_key,   -- CAMBIO: employee_id
-    TRIM(first_name) || ' ' || TRIM(last_name) AS full_name, -- CAMBIO: first_name, last_name
+    employee_id AS employee_key,   
+    TRIM(first_name) || ' ' || TRIM(last_name) AS full_name, 
     title AS job_title,
-    hire_date AS hire_date, -- CAMBIO: hire_date
+    hire_date AS hire_date, 
     city AS office_city,
     country AS office_country
 FROM public.employee;
@@ -21,7 +21,7 @@ DROP TABLE IF EXISTS analytics.dim_customer;
 
 CREATE TABLE analytics.dim_customer AS
 SELECT 
-    customer_id AS customer_key, -- CAMBIO: customer_id
+    customer_id AS customer_key, 
     TRIM(first_name) || ' ' || TRIM(last_name) AS full_name,
     COALESCE(company, 'Particular') AS company_name,
     CASE 
@@ -32,7 +32,7 @@ SELECT
     COALESCE(state, 'N/A') AS state_province,
     country AS country,
     LOWER(email) AS email,
-    support_rep_id AS support_rep_key -- CAMBIO: support_rep_id
+    support_rep_id AS support_rep_key 
 FROM public.customer;
 
 ALTER TABLE analytics.dim_customer ADD PRIMARY KEY (customer_key);
@@ -44,7 +44,7 @@ DROP TABLE IF EXISTS analytics.dim_track;
 
 CREATE TABLE analytics.dim_track AS
 SELECT 
-    t.track_id AS track_key, -- CAMBIO: track_id
+    t.track_id AS track_key, 
     t.name AS track_name,
     COALESCE(a.title, 'Unknown Album') AS album_title,
     COALESCE(ar.name, 'Unknown Artist') AS artist_name,
@@ -52,12 +52,12 @@ SELECT
     mt.name AS media_type_name,
     ROUND(t.milliseconds / 60000.0, 2) AS duration_minutes,
     t.bytes AS size_bytes,
-    t.unit_price AS unit_price -- CAMBIO: unit_price
+    t.unit_price AS unit_price 
 FROM public.track t
-LEFT JOIN public.album a ON t.album_id = a.album_id         -- CAMBIO: album_id
-LEFT JOIN public.artist ar ON a.artist_id = ar.artist_id    -- CAMBIO: artist_id
-LEFT JOIN public.genre g ON t.genre_id = g.genre_id         -- CAMBIO: genre_id
-LEFT JOIN public.media_type mt ON t.media_type_id = mt.media_type_id; -- CAMBIO: media_type_id (ojo tabla media_type)
+LEFT JOIN public.album a ON t.album_id = a.album_id         
+LEFT JOIN public.artist ar ON a.artist_id = ar.artist_id    
+LEFT JOIN public.genre g ON t.genre_id = g.genre_id         
+LEFT JOIN public.media_type mt ON t.media_type_id = mt.media_type_id; 
 
 ALTER TABLE analytics.dim_track ADD PRIMARY KEY (track_key);
 
@@ -89,24 +89,24 @@ DROP TABLE IF EXISTS analytics.fact_sales;
 
 CREATE TABLE analytics.fact_sales AS
 SELECT 
-    il.invoice_line_id AS sales_key, -- CAMBIO: invoice_line_id
+    il.invoice_line_id AS sales_key, 
     i.customer_id AS customer_key,
     il.track_id AS track_key,
     CAST(TO_CHAR(i.invoice_date, 'YYYYMMDD') AS INTEGER) AS date_key,
     c.support_rep_id AS employee_key,
-    i.billing_country AS billing_country, -- CAMBIO: billing_country
+    i.billing_country AS billing_country, 
     i.invoice_id AS invoice_id,
     il.quantity AS quantity,
     il.unit_price AS unit_price,
     (il.quantity * il.unit_price) AS total_revenue
 
-FROM public.invoice_line il  -- CAMBIO: invoice_line (tabla con guion bajo)
+FROM public.invoice_line il  
 JOIN public.invoice i ON il.invoice_id = i.invoice_id
 JOIN public.customer c ON i.customer_id = c.customer_id;
 
 ALTER TABLE analytics.fact_sales ADD PRIMARY KEY (sales_key);
 
--- 7. TABLA CUSTOMER_RFM_SCORE (Esta lógica no cambia, usa nuestras tablas analytics)
+-- 7. TABLA CUSTOMER_RFM_SCORE 
 DROP TABLE IF EXISTS analytics.customer_rfm_score;
 
 CREATE TABLE analytics.customer_rfm_score AS
