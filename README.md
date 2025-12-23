@@ -1,157 +1,147 @@
-# 📘 Documentación técnica: Chinook Strategy Command Center
+# 📊 Chinook Strategy Command Center: Solución de Business Intelligence End-to-End
 
-**Business Intelligence & Data Engineering Project**
+## 📑 Tabla de Contenidos
+- [Resumen](#-resumen-ejecutivo)
+- [Contexto de negocio y problemática](#-contexto-de-negocio-y-problemática)
+- [Marco estratégico: OKRs y KPIs](#-marco-estratégico-okrs-y-kpis)
+- [Arquitectura de datos e ingeniería](#️-arquitectura-de-datos-e-ingeniería)
+- [Modelado dimensional (OLAP)](#-modelado-dimensional-olap)
+- [Análisis profundo y segmentación de clientes (RFM)](#-análisis-profundo-y-segmentación-de-clientes-rfm)
+- [Descripción del dashboard e insights](#-descripción-del-dashboard-e-insights)
+- [Stack tecnológico](#-stack-tecnológico)
+- [Instalación y despliegue](#-instalación-y-despliegue)
 
-## 1. Resumen Ejecutivo
+## 🚀 Resumen 
+Este proyecto presenta una solución integral de Business Intelligence (BI) diseñada para transformar los datos transaccionales de una tienda de medios digitales (Chinook) en activos estratégicos para la toma de decisiones.
 
-El **Chinook Strategy Command Center** es una solución de Inteligencia de Negocios (BI) diseñada para transformar los datos transaccionales de una tienda de música digital global en activos estratégicos. Este proyecto aborda la problemática de la "ceguera operativa", donde la abundancia de datos crudos no se traducía en información accionable.
+Simulando un entorno corporativo real, se realizó una migración completa de una arquitectura **OLTP** (On-Line Transaction Processing) hacia un **Data Warehouse OLAP** (On-Line Analytical Processing). El resultado es un sistema capaz de procesar volúmenes de datos históricos, reducir la latencia de consulta y visualizar métricas críticas de negocio mediante un dashboard interactivo autogestionado.
 
-A través de un pipeline de Ingeniería de Datos (ETL), hemos migrado de un enfoque reactivo a uno proactivo, permitiendo a la gerencia visualizar la salud financiera, segmentar clientes por valor y optimizar el catálogo de productos en tiempo real.
+## 🏢 Contexto de negocio y problemática
+**Chinook** es una tienda global de música y video digital. A pesar de contar con una base de datos robusta, la organización sufría de "Ceguera Operativa":
+
+- **Silos de datos**: La información estaba dispersa en tablas altamente normalizadas, dificultando la visión holística.
+- **Latencia en reportes**: Consultas analíticas complejas sobre el sistema transaccional degradaban el rendimiento de la operación diaria.
+- **Falta de segmentación**: No existía una metodología para identificar clientes de alto valor o riesgos de abandono (Churn).
+
+**La solución**: Implementación de un pipeline ETL (Extract, Transform, Load) para consolidar una "Single Source of Truth" (SSOT) en un esquema dimensional optimizado para lectura.
+
+## 🎯 Marco estratégico: OKRs y KPIs
+El diseño del dashboard responde a objetivos estratégicos definidos bajo la metodología **OKR** (Objectives and Key Results):
+
+### Objetivo 1: Maximizar la eficiencia de ingresos
+**KR 1**: Monitorear el flujo de caja histórico y actual para identificar estacionalidades.
+- **KPI principal**: Total Revenue (Ingresos Brutos).
+- **KPI secundario**: AOV (Average Order Value) - Ticket promedio por transacción.
+
+### Objetivo 2: Optimización de inventario y operaciones
+**KR 1**: Identificar los formatos de archivo más rentables vs. los que consumen almacenamiento innecesario.
+- **KPI**: Profitability by Media Type.
+
+### Objetivo 3: Retención y fidelización de clientes
+**KR 1**: Segmentar la base de usuarios basada en comportamiento de compra para personalizar estrategias de marketing.
+- **KPI**: Customer Lifetime Value (CLV) proxies mediante segmentación RFM.
+
+## ⚙️ Arquitectura de datos e ingeniería
+El flujo de trabajo sigue un enfoque de ingeniería de datos moderno, orquestado mediante contenedores para asegurar la reproducibilidad.
+
+### Flujo del pipeline (ETL)
+1. **Extracción (Source)**: Se parte de una base de datos PostgreSQL en 3FN (Tercera Forma Normal). Este modelo relacional es eficiente para la integridad de datos (escritura) pero ineficiente para el análisis (lectura) debido a la excesiva cantidad de JOINs necesarios.
+
+2. **Transformación (Staging Area)**: Mediante scripts SQL avanzados (DDL/DML), se limpian los datos, se desnormalizan tablas y se calculan métricas pre-agregadas.
+
+3. **Carga (Target)**: Los datos transformados se insertan en un esquema dimensional (Star Schema) dentro del Data Warehouse.
+
+### Infraestructura (IaaS)
+El proyecto se despliega sobre un servidor VPS Linux (Ubuntu 24.04) en la nube, utilizando **Docker Compose** para levantar una arquitectura multi-contenedor que incluye la base de datos y la plataforma de visualización (Metabase), interconectados en una red interna aislada.
+
+## 📐 Modelado dimensional (OLAP)
+Para optimizar el rendimiento de las consultas analíticas, se diseñó un **Esquema de Estrella (Star Schema)**:
+
+![Modelo OLTP](/assets/oltp_model.png)
+
+*Modelo OLTP*
+
+![Modelo OLAP (Esquema estrella)](/assets/olap_model.png)
+
+*Modelo OLAP (Esquema estrella)*
+
+- **Fact Table (fact_invoice_lines)**: Tabla central de hechos que contiene las métricas cuantitativas (precios unitarios, cantidades, totales) y las llaves foráneas.
+
+- **Dimension tables**: Tablas satelitales desnormalizadas que aportan contexto:
+  - `dim_customers`: Datos demográficos y ubicación.
+  - `dim_tracks`: Metadatos de las canciones, álbumes, géneros y tipos de medio.
+  - `dim_time`: (Implícita) Para cortes temporales y análisis de series de tiempo.
+  - `dim_employees`: Jerarquía organizacional y ventas.
+
+Este modelo reduce la complejidad de las consultas de **6+ JOINs** (en OLTP) a **1 o 2 uniones simples**, acelerando drásticamente el tiempo de respuesta del dashboard.
+
+## 💎 Análisis profundo y segmentación de clientes (RFM)
+La "Joya de la Corona" de este análisis es la implementación de un algoritmo de **Segmentación RFM** (Recencia, Frecuencia, Valor Monetario) utilizando SQL Avanzado.
+
+### Metodología técnica
+A diferencia de herramientas "caja negra", aquí se calculó la segmentación manualmente en la base de datos utilizando:
+
+- **CTEs (Common Table Expressions)**: Para aislar métricas por cliente.
+- **Window Functions (NTILE)**: Para dividir a la población en cuartiles estadísticos (scores del 1 al 4) en tres dimensiones:
+  - **Recencia (R)**: ¿Hace cuánto compró? (1 = Lejano, 4 = Reciente).
+  - **Frecuencia (F)**: ¿Cuántas veces compró?
+  - **Monetario (M)**: ¿Cuánto gastó en total?
+
+### Visualización e insights
+Se construyó un **Scatter Plot** (Matriz de Dispersión) correlacionando el Valor Monetario (Eje Y) vs. Frecuencia/Recencia (Eje X).
+
+**Objetivo**: Identificar clusters de comportamiento para acciones tácticas.
+
+**Insight clave**:
+- **Campeones (Superior derecha)**: Clientes con alta frecuencia y alto gasto. **Acción**: Programas de fidelidad VIP.
+- **En Riesgo (Superior izquierda)**: Clientes que gastaron mucho en el pasado pero no han vuelto (Baja Recencia). **Acción**: Campañas de reactivación/Win-back agresivas.
+- **Nuevos/Prometedores**: Clientes recientes con potencial de crecimiento.
+
+## 📊 Descripción del dashboard e insights
+El tablero de control en **Metabase** se estructura en niveles de lectura:
+
+1. **Filtros globales**: Permiten al usuario segmentar todo el reporte por Rango de Fechas y País de Facturación (Billing Country), otorgando interactividad total.
+
+2. **Health check (KPIs)**: Tarjetas numéricas con indicadores de Ingresos Totales y Promedio de Venta, permitiendo una evaluación instantánea del estado financiero.
+
+3. **Análisis geoespacial**: Mapa de calor que muestra la densidad de ventas por país.
+   - **Insight**: América del Norte y Europa concentran el 80% del mercado, sugiriendo focalizar esfuerzos logísticos y de marketing en estas zonas.
+
+4. **Análisis de pareto (Formatos)**: Gráfico de barras que contrasta ingresos por tipo de archivo.
+   - **Insight**: A pesar de almacenar archivos pesados (AAC/Lossless), el formato MPEG (MP3) genera la inmensa mayoría de los ingresos. Esto sugiere una oportunidad de ahorro en costos de almacenamiento cloud eliminando formatos de baja rotación.
+
+5. **Performance de empleados**: Ranking de ventas por agente de soporte, útil para evaluaciones de desempeño y bonificaciones.
+
+## 🛠 Stack tecnológico
+- **Base de datos**: PostgreSQL 16 (Motor relacional robusto).
+- **Lenguajes**: SQL (PL/pgSQL para procedimientos almacenados), Bash (Scripting).
+- **Infraestructura**: Docker & Docker Compose (Contenerización).
+- **Cloud**: Ubuntu Server en VPS (Clouding.io).
+- **Visualización**: Metabase (Business Intelligence Open Source).
+- **Control de versiones**: Git & GitHub.
+
+## 💻 Instalación y despliegue
+Sigue estos pasos para desplegar el proyecto en tu entorno local:
+
+1. **Clonar el repositorio**:
+   ```bash
+   git clone https://github.com/tu-usuario/chinook-strategy-center.git
+   cd chinook-strategy-center
+   ```
+
+2. **Configurar variables de entorno**: Renombrar el archivo `.env.example` a `.env` y configurar las credenciales de base de datos.
+
+3. **Despliegue con Docker**:
+   ```bash
+   docker-compose up -d --build
+   ```
+
+4. **Ejecución del ETL**: Acceder al contenedor de base de datos y ejecutar el script de migración SQL provisto en `/scripts/etl_pipeline.sql`.
+
+5. **Acceso**:
+   - Metabase: http://localhost:3000
+   - Base de datos: Puerto 5432
 
 ---
 
-## 2. Marco Estratégico (OKRs y KPIs)
-
-El proyecto se rige bajo el siguiente marco de Objetivos y Resultados Clave (OKRs):
-
-- **Objetivo (O):** Democratizar el acceso a insights estratégicos para maximizar la rentabilidad y retención de clientes.
-
-- **Key Result 1 (KR):** Reducir el tiempo de obtención de métricas financieras de horas a segundos mediante un modelo OLAP.
-
-- **Key Result 2 (KR):** Identificar y aislar al top 20% de clientes de alto valor (Segmentación RFM) para estrategias de retención.
-
-- **Key Result 3 (KR):** Detectar ineficiencias en el inventario digital (formatos y géneros de baja rotación).
-
----
-
-## 3. Arquitectura de Datos: De OLTP a OLAP
-
-Uno de los pilares técnicos de este proyecto fue la transformación del modelo de datos para optimizar el rendimiento analítico.
-
-### 3.1 El Punto de Partida: Modelo OLTP (Transaccional)
-
-- **Estructura:** Base de datos altamente normalizada (3ra Forma Normal).
-
-- **Características:** Diseñada para la integridad de datos y escrituras rápidas (INSERT/UPDATE/DELETE).
-
-- **Problema Analítico:** Para responder una pregunta simple como *"¿Cuánto vendió Jane Peacock en Brasil en 2023?"*, se requerían más de 5 `JOINs` complejos entre tablas dispersas (`Invoice`, `InvoiceLine`, `Customer`, `Employee`, `Track`, `Album`, `Artist`). Esto generaba latencia y complejidad en las consultas.
-
-### 3.2 La Solución: Modelo OLAP (Analítico)
-
-- **Transformación (ETL):** Se creó un **Data Warehouse** utilizando un **Esquema Estrella (Star Schema)** dentro del esquema `analytics`.
-
-- **Cambios Clave:**
-
-- **Desnormalización:** Se redujo la complejidad uniendo tablas relacionadas. Por ejemplo, `dim_track` ahora contiene datos del track, álbum, artista y género en una sola fila.
-
-- **Tabla de Hechos (`fact_sales`):** Centraliza todas las métricas numéricas (ingresos, cantidad) y las claves foráneas.
-
-- **Tablas de Dimensiones (`dim_...`):** Proporcionan el contexto (Quién, Cuándo, Qué, Dónde).
-
-- **Beneficio:** Las consultas ahora son directas y eficientes, permitiendo el filtrado dinámico en el dashboard sin impactar el rendimiento.
-
----
-
-## 4. Desglose del Dashboard y Análisis Visual
-
-El dashboard se divide en cuatro secciones estratégicas, cada una diseñada para responder preguntas de negocio específicas.
-
-### SECCIÓN 1: Resumen Financiero (The Pulse)
-
-**Objetivo:** Proporcionar conciencia situacional inmediata sobre la salud macroeconómica del negocio.
-
-- **KPI 1: Ingresos Totales (Total Revenue)**
-
-- *Definición:* Suma total de ventas netas.
-
-- *Insight:* Es la "North Star Metric" que indica el volumen de negocio.
-
-- **KPI 2: Ticket Promedio (AOV - Average Order Value)**
-
-- *Definición:* Ingresos Totales / Cantidad de Transacciones Únicas.
-
-- *Pregunta que responde:* ¿Qué tan eficientes somos en cada venta? ¿Están funcionando las estrategias de up-selling?
-
-- **KPI 3: Cantidad de Clientes VIP (Campeones)**
-
-- *Definición:* Conteo en tiempo real de clientes segmentados como "Campeones" por el algoritmo RFM.
-
-- *Insight:* Monitor de retención. Una caída aquí es una alerta roja inmediata.
-
-### SECCIÓN 2: Inteligencia de Clientes (Matriz RFM)
-
-**Objetivo:** Pasar de ver "promedios" a entender comportamientos individuales. Se utilizó un algoritmo SQL para calcular puntajes de **Recencia** (días desde última compra), **Frecuencia** y **Valor Monetario**.
-
-- **Gráfico: Matriz de Valor (Scatter Plot)**
-
-- *Eje X (Recencia):* Riesgo de abandono (más a la derecha = más tiempo sin comprar).
-
-- *Eje Y (Monetario):* Valor del cliente (más arriba = más dinero gastado).
-
-- *Tamaño de Burbuja:* Frecuencia de compra.
-
-- *Color:* Segmento Automático (Campeones, Leales, En Riesgo, Perdidos).
-
-- *Insight:* Permite identificar visualmente a los clientes "Ballena" (VIPs) y diferenciarlos de los clientes que gastaron mucho una vez pero nunca volvieron.
-
-- **Gráfico: Distribución de Segmentos (Donut Chart)**
-
-- *Objetivo:* Entender la composición de la base de clientes.
-
-- *Insight:* Si el segmento "Perdidos" supera el 30-40%, la empresa tiene un problema grave de retención (Churn).
-
-### SECCIÓN 3: Operaciones y Mercado Global
-
-**Objetivo:** Optimizar la logística digital y enfocar esfuerzos de marketing geográfico.
-
-- **Gráfico: Mapa de Calor de Ventas (Geo Map)**
-
-- *Transformación:* Se normalizaron datos geográficos (ej. 'USA' -> 'United States') para asegurar la correcta renderización ISO.
-
-- *Insight:* Identificación de mercados saturados vs. mercados emergentes con alto ROI.
-
-- **Gráfico: Pareto de Formatos de Archivo (Barras)**
-
-- *Pregunta que responde:* ¿Qué formatos técnicos generan ingresos reales?
-
-- *Insight Operativo:* Se detectó que el formato **MPEG (MP3)** domina los ingresos. Formatos pesados como AAC o Lossless consumen almacenamiento (costo de infraestructura) pero generan ingresos marginales. *Recomendación: Depurar catálogo.*
-
-### SECCIÓN 4: Gestión de Talento y Estrategia de Producto
-
-**Objetivo:** Evaluar el rendimiento del capital humano y la alineación del producto con el mercado.
-
-- **Gráfico: Ranking de Performance de Vendedores**
-
-- *Métricas:* Ingresos generados vs. Transacciones cerradas.
-
-- *Insight:* Identificación de Top Performers para programas de mentoría interna y detección de necesidades de capacitación en el resto del equipo.
-
-- **Gráfico: Top 10 Géneros Rentables (Cash Cows)**
-
-- *Pregunta que responde:* ¿Qué contenido realmente paga las cuentas?
-
-- *Insight:* Validación de tendencias de mercado (ej. predominancia de Rock/Latin sobre nichos como Opera o Drama). Esto guía la adquisición de nuevas licencias musicales.
-
----
-
-## 5. Infraestructura y Despliegue (DevOps)
-
-El proyecto simula un entorno de producción real, asegurando escalabilidad y seguridad.
-
-- **Cloud Provider:** VPS en Clouding.io (Ubuntu 24.04 LTS).
-
-- **Contenerización:** Docker & Docker Compose para orquestar los servicios.
-
-- **Stack:**
-
-- **Base de Datos:** PostgreSQL 16 (Persistencia de datos).
-
-- **Gestión:** pgAdmin 4 (Administración y Backups).
-
-- **Visualización:** Metabase (Business Intelligence Frontend).
-
-- **Seguridad:** Configuración de Firewall perimetral permitiendo tráfico únicamente en puertos estrictamente necesarios (SSH/HTTP).
-
-## 6. Conclusión
-
-Este proyecto demuestra cómo una arquitectura de datos moderna y un análisis visual bien diseñado pueden transformar una base de datos estática en un centro de comando estratégico, permitiendo a la organización tomar decisiones basadas en evidencia (Data-Driven) en lugar de intuición.
+**Este proyecto fue desarrollado como trabajo final para el curso de Data Analytics en Devlights.**
