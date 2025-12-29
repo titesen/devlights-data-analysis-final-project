@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  # -----------------------------------------------------------------
+  # Servicio de Base de Datos (Data Warehouse)
+  # -----------------------------------------------------------------
+  db:
+    image: postgres:16
+    container_name: chinook_db
+    environment:
+      POSTGRES_USER: devlights_user
+      POSTGRES_PASSWORD: devlights_password
+      POSTGRES_DB: chinook_dw
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Scripts de carga inicial (OLTP y OLAP)
+      - ./assets/oltp.sql:/docker-entrypoint-initdb.d/01_oltp.sql
+      - ./assets/olap.sql:/docker-entrypoint-initdb.d/02_olap.sql
+    networks:
+      - chinook_net
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U devlights_user -d chinook_dw"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # -----------------------------------------------------------------
+  # Servicio de Visualización (Metabase con Dashboards Precargados)
+  # -----------------------------------------------------------------
+  metabase:
+    image: metabase/metabase:latest
+    container_name: chinook_bi
+    volumes:
+      # Mapeamos TU carpeta de backup para que levante con los gráficos listos
+      - ./metabase_backup_data:/metabase-data
+    environment:
+      MB_DB_FILE: /metabase-data/metabase.db
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: chinook_dw
+      MB_DB_PORT: 5432
+      MB_DB_USER: devlights_user
+      MB_DB_PASS: devlights_password
+      MB_DB_HOST: db
+    ports:
+      - "3000:3000"
+    networks:
+      - chinook_net
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # -----------------------------------------------------------------
+  # Servicio de Administración de BD (pgAdmin 4)
+  # -----------------------------------------------------------------
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: chinook_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@chinook.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    ports:
+      - "5050:80"
+    networks:
+      - chinook_net
+    depends_on:
+      - db
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  chinook_net:
+    driver: bridge
