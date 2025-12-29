@@ -1,170 +1,443 @@
-# 📊 Chinook Strategy Command Center: Solución de Business Intelligence End-to-End
+# 📊 Chinook Strategy Command Center
 
-![Status](https://img.shields.io/badge/Status-Completed-success) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue) ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED) ![Metabase](https://img.shields.io/badge/Visualization-Metabase-509EE3)
+> Solución integral de Business Intelligence end-to-end: Data Warehouse, ETL automatizado y visualización interactiva para análisis estratégico de datos de negocio.
+
+![Status](https://img.shields.io/badge/Status-Production-success) 
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue) 
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED) 
+![Metabase](https://img.shields.io/badge/Metabase-Latest-509EE3)
+![License](https://img.shields.io/badge/License-MIT-green)
 
 ## 📑 Tabla de Contenidos
-- [Resumen](#-resumen-ejecutivo)
-- [Contexto de negocio y problemática](#-contexto-de-negocio-y-problemática)
-- [Marco estratégico: OKRs y KPIs](#-marco-estratégico-okrs-y-kpis)
-- [Arquitectura de datos e ingeniería](#-arquitectura-de-datos-e-ingeniería)
-- [Modelado dimensional (OLAP)](#-modelado-dimensional-olap)
-- [Análisis profundo y segmentación (RFM)](#-análisis-profundo-y-segmentación-de-clientes-rfm)
-- [Descripción del dashboard e insights](#-descripción-del-dashboard-e-insights)
-- [Stack tecnológico](#-stack-tecnológico)
-- [Instalación y despliegue](#-instalación-y-despliegue)
 
-## 🚀 Resumen 
-Este proyecto presenta una solución integral de **Business Intelligence (BI)** diseñada para transformar los datos transaccionales de una tienda de medios digitales (*Chinook*) en activos estratégicos para la toma de decisiones.
+- [Descripción General](#-descripción-general)
+- [Características Principales](#-características-principales)
+- [Arquitectura del Sistema](#-arquitectura-del-sistema)
+- [Modelo de Datos](#-modelo-de-datos)
+  - [Esquema OLTP (Fuente)](#esquema-oltp-fuente)
+  - [Esquema OLAP (Data Warehouse)](#esquema-olap-data-warehouse)
+- [Análisis Implementados](#-análisis-implementados)
+  - [Segmentación RFM](#segmentación-rfm-de-clientes)
+  - [KPIs de Negocio](#kpis-de-negocio)
+- [Instalación y Configuración](#-instalación-y-configuración)
+  - [Requisitos Previos](#requisitos-previos)
+  - [Pasos de Instalación](#pasos-de-instalación)
+  - [Acceso a Servicios](#acceso-a-servicios)
+- [Estructura del Proyecto](#-estructura-del-proyecto)
+- [Stack Tecnológico](#-stack-tecnológico)
+- [Uso y Operación](#-uso-y-operación)
+- [Troubleshooting](#-troubleshooting)
+- [Contribución](#-contribución)
+- [Licencia](#-licencia)
+- [Autor](#-autor)
 
-Simulando un entorno corporativo real, se realizó una migración completa de una arquitectura **OLTP** (On-Line Transaction Processing) hacia un **Data Warehouse OLAP** (On-Line Analytical Processing). El resultado es un sistema capaz de procesar volúmenes de datos históricos, reducir la latencia de consulta y visualizar métricas críticas de negocio mediante un dashboard interactivo autogestionado.
+## 🎯 Descripción General
 
-## 🏢 Contexto de negocio y problemática
-**Chinook** es una tienda global de música y video digital. A pesar de contar con una base de datos robusta, la organización sufría de "Ceguera Operativa":
+**Chinook Strategy Command Center** es un proyecto de análisis de datos que implementa una solución completa de **Business Intelligence (BI)** para transformar datos transaccionales en insights accionables. El proyecto simula un entorno corporativo real de una tienda de medios digitales, abarcando desde la extracción de datos hasta la visualización interactiva de métricas de negocio.
 
-- **Silos de datos**: La información estaba dispersa en tablas altamente normalizadas, dificultando la visión holística.
-- **Latencia en reportes**: Consultas analíticas complejas sobre el sistema transaccional degradaban el rendimiento de la operación diaria.
-- **Falta de segmentación**: No existía una metodología para identificar clientes de alto valor o riesgos de abandono (Churn).
+### Contexto de Negocio
 
-**La solución**: Implementación de un pipeline ETL (Extract, Transform, Load) para consolidar una "Single Source of Truth" (SSOT) en un esquema dimensional optimizado para lectura.
+**Chinook** es una tienda global de música y video digital con operaciones en múltiples países. A pesar de contar con un sistema transaccional robusto, la organización enfrentaba desafíos críticos:
 
-## 🎯 Marco estratégico: OKRs y KPIs
-El diseño del dashboard responde a objetivos estratégicos definidos bajo la metodología **OKR** (Objectives and Key Results):
+- **Silos de información**: Datos dispersos en tablas normalizadas sin visión consolidada.
+- **Latencia analítica**: Consultas complejas degradaban el rendimiento operacional.
+- **Ausencia de segmentación**: Sin metodología para identificar clientes de alto valor o en riesgo de churn.
+- **Decisiones reactivas**: Falta de métricas en tiempo real para estrategia comercial.
 
-### Objetivo 1: Maximizar la eficiencia de ingresos
-**KR 1**: Monitorear el flujo de caja histórico y actual para identificar estacionalidades.
-- **KPI Principal**: *Total Revenue* (Ingresos Brutos).
-- **KPI Secundario**: *AOV (Average Order Value)* - Ticket promedio por transacción.
+### Solución Implementada
 
-### Objetivo 2: Optimización de inventario y operaciones
-**KR 1**: Identificar los formatos de archivo más rentables vs. los que consumen almacenamiento innecesario.
-- **KPI**: *Profitability by Media Type*.
+Este proyecto resuelve estos desafíos mediante:
 
-### Objetivo 3: Retención y fidelización de clientes
-**KR 1**: Segmentar la base de usuarios basada en comportamiento de compra para personalizar estrategias de marketing.
-- **KPI**: *Customer Lifetime Value (CLV)* proxies mediante segmentación RFM.
+1. **Migración OLTP → OLAP**: Construcción de un Data Warehouse optimizado para análisis.
+2. **Pipeline ETL automatizado**: Transformación y carga de datos sin intervención manual al iniciar el contenedor.
+3. **Modelo dimensional**: Esquema de estrella (Star Schema) para consultas de alto rendimiento.
+4. **Segmentación avanzada**: Algoritmo RFM para clasificación de clientes directamente en SQL.
+5. **Dashboard interactivo**: Visualización en tiempo real con Metabase pre-cargado.
+6. **Infraestructura como código**: Despliegue reproducible "One-Click" con Docker Compose.
 
-## ⚙️ Arquitectura de datos e ingeniería
-El flujo de trabajo sigue un enfoque de ingeniería de datos moderno, orquestado mediante contenedores para asegurar la reproducibilidad.
+## ✨ Características Principales
 
-### Flujo del Pipeline (ETL)
-1. **Extracción (Source)**: Se parte de una base de datos PostgreSQL en **3FN (Tercera Forma Normal)**. Este modelo relacional es eficiente para la integridad de datos (escritura) pero ineficiente para el análisis (lectura) debido a la excesiva cantidad de `JOINs` necesarios.
+- ✅ **Despliegue automatizado**: Un solo comando (`docker compose up`) levanta toda la infraestructura.
+- ✅ **ETL sin código**: Scripts SQL ejecutados automáticamente al iniciar.
+- ✅ **Pre-configurado**: Dashboard con visualizaciones y conexiones listas para usar.
+- ✅ **Análisis avanzado**: Segmentación RFM, análisis de cohortes, series temporales.
+- ✅ **Escalable**: Arquitectura modular basada en microservicios.
+- ✅ **Portable**: Funciona en cualquier sistema (Windows, Mac, Linux) con Docker.
+- ✅ **Open Source**: Stack tecnológico completamente libre y gratuito.
 
-2. **Transformación (Staging Area)**: Mediante scripts SQL avanzados (DDL/DML), se limpian los datos, se desnormalizan tablas y se calculan métricas pre-agregadas.
+## 🏗️ Arquitectura del Sistema
 
-3. **Carga (Target)**: Los datos transformados se insertan en un esquema dimensional (**Star Schema**) dentro del Data Warehouse.
+El proyecto implementa una arquitectura de datos moderna basada en contenedores, siguiendo el patrón **ELT (Extract, Load, Transform)**.
 
-### Infraestructura (IaaS)
-El proyecto se despliega sobre un servidor **VPS Linux (Ubuntu 24.04)** en la nube, utilizando **Docker Compose** para levantar una arquitectura multi-contenedor que incluye la base de datos, la plataforma de visualización (Metabase) y herramientas de administración (pgAdmin), interconectados en una red interna aislada.
+### Diagrama de Arquitectura
 
-## 📐 Modelado dimensional (OLAP)
-Para optimizar el rendimiento de las consultas analíticas, se diseñó un **Esquema de Estrella (Star Schema)**:
+```mermaid
+graph TD
+    subgraph Docker_Compose_Network [Docker Compose Network]
+        direction TB
+        METABASE[Metabase<br/>Port 3000]
+        DB[(PostgreSQL 16<br/>Port 5432)]
+        PGADMIN[pgAdmin 4<br/>Port 5050]
+        
+        METABASE -->|Conecta JDBC| DB
+        PGADMIN -->|Administra| DB
+    end
 
-![Modelo OLTP](/assets/oltp_model.png)
-*Fig 1. Modelo Relacional Original (OLTP)*
+    subgraph Database_Internal [Dentro de PostgreSQL]
+        direction TB
+        OLTP[(Esquema OLTP<br/>Source)]
+        ETL_PROCESS{Scripts ETL<br/>SQL Automatizado}
+        OLAP[(Esquema OLAP<br/>Data Warehouse)]
+        
+        OLTP -->|Extract| ETL_PROCESS
+        ETL_PROCESS -->|Transform & Load| OLAP
+    end
 
-![Modelo OLAP (Esquema estrella)](/assets/olap_model.png)
-*Fig 2. Modelo Dimensional Optimizado (OLAP)*
+    USER((Usuario)) -->|Visualiza| METABASE
+    USER -->|Administra| PGADMIN
 
-- **Fact Table (`fact_invoice_lines`)**: Tabla central de hechos que contiene las métricas cuantitativas (precios unitarios, cantidades, totales) y las llaves foráneas.
-- **Dimension tables**: Tablas satelitales desnormalizadas que aportan contexto:
-  - `dim_customers`: Datos demográficos y ubicación.
-  - `dim_tracks`: Metadatos de las canciones, álbumes, géneros y tipos de medio.
-  - `dim_time`: (Implícita) Para cortes temporales y análisis de series de tiempo.
-  - `dim_employees`: Jerarquía organizacional y ventas.
+```
 
-Este modelo reduce la complejidad de las consultas de **6+ JOINs** (en OLTP) a **1 o 2 uniones simples**, acelerando drásticamente el tiempo de respuesta del dashboard.
+### Componentes
 
-## 💎 Análisis profundo y segmentación de Clientes (RFM)
-La "Joya de la Corona" de este análisis es la implementación de un algoritmo de **Segmentación RFM** (Recencia, Frecuencia, Valor Monetario) utilizando SQL Avanzado.
+#### 1. Base de Datos PostgreSQL (Contenedor `db`)
 
-### Metodología técnica
-A diferencia de herramientas "caja negra", aquí se calculó la segmentación manualmente en la base de datos utilizando:
+* **Imagen**: `postgres:16`
+* **Función**: Aloja tanto el esquema OLTP (fuente) como el OLAP (Data Warehouse) en la base de datos `chinook`.
+* **Inicialización**: Ejecuta automáticamente scripts SQL en `/docker-entrypoint-initdb.d/`:
+* `01_oltp.sql`: Crea y puebla el esquema transaccional.
+* `02_olap.sql`: Crea el esquema dimensional `analytics` y ejecuta transformaciones ETL.
 
-- **CTEs (Common Table Expressions)**: Para aislar métricas por cliente.
-- **Window Functions (`NTILE`)**: Para dividir a la población en cuartiles estadísticos (scores del 1 al 4) en tres dimensiones:
-  - **Recencia (R)**: ¿Hace cuánto compró? (1 = Lejano, 4 = Reciente).
-  - **Frecuencia (F)**: ¿Cuántas veces compró?
-  - **Monetario (M)**: ¿Cuánto gastó en total?
 
-### Visualización e insights
-Se construyó un **Scatter Plot** (Matriz de Dispersión) correlacionando el *Valor Monetario* (Eje Y) vs. *Frecuencia/Recencia* (Eje X).
+* **Persistencia**: Volumen Docker `postgres_data` para garantizar durabilidad.
 
-**Objetivo**: Identificar clusters de comportamiento para acciones tácticas.
+#### 2. Metabase (Contenedor `metabase`)
 
-**Insight Clave**:
-- **Campeones (Superior Derecha)**: Clientes con alta frecuencia y alto gasto. **Acción**: Programas de fidelidad VIP.
-- **En Riesgo (Superior Izquierda)**: Clientes que gastaron mucho en el pasado pero no han vuelto (Baja Recencia). **Acción**: Campañas de reactivación/Win-back agresivas.
-- **Nuevos/Prometedores**: Clientes recientes con potencial de crecimiento.
+* **Imagen**: `metabase/metabase:latest`
+* **Función**: Plataforma de BI para visualización interactiva.
+* **Configuración**: Base de datos H2 embebida restaurada desde backup local.
+* **Conectividad**: Se conecta automáticamente al esquema OLAP del contenedor `db`.
 
-## 📊 Descripción del Dashboard e Insights
-El tablero de control en **Metabase** se estructura en niveles de lectura:
+#### 3. pgAdmin (Contenedor `pgadmin`)
 
-1. **Filtros Globales**: Permiten al usuario segmentar todo el reporte por *Rango de Fechas* y *País de Facturación* (Billing Country), otorgando interactividad total.
+* **Imagen**: `dpage/pgadmin4:latest`
+* **Función**: Interfaz web para administración de PostgreSQL.
+* **Uso**: Inspección de esquemas, ejecución de queries, debugging.
 
-2. **Health Check (KPIs)**: Tarjetas numéricas con indicadores de *Ingresos Totales* y *Promedio de Venta*, permitiendo una evaluación instantánea del estado financiero.
+## 📐 Modelo de Datos
 
-3. **Análisis Geoespacial**: Mapa de calor que muestra la densidad de ventas por país.
-   - *Insight*: América del Norte y Europa concentran el 80% del mercado, sugiriendo focalizar esfuerzos logísticos y de marketing en estas zonas.
+### Esquema OLTP (Fuente)
 
-4. **Análisis de Pareto (Formatos)**: Gráfico de barras que contrasta ingresos por tipo de archivo.
-   - *Insight*: A pesar de almacenar archivos pesados (AAC/Lossless), el formato **MPEG (MP3)** genera la inmensa mayoría de los ingresos. Esto sugiere una oportunidad de ahorro en costos de almacenamiento cloud eliminando formatos de baja rotación.
+El esquema transaccional sigue la **Tercera Forma Normal (3NF)**, optimizado para integridad referencial y operaciones CRUD.
 
-5. **Performance de Empleados**: Ranking de ventas por agente de soporte, útil para evaluaciones de desempeño y bonificaciones.
+#### Diagrama OLTP
 
-## 🛠 Stack Tecnológico
-- **Base de Datos**: PostgreSQL 16 (Motor relacional robusto).
-- **Lenguajes**: SQL (PL/pgSQL para procedimientos almacenados), Bash (Scripting).
-- **Infraestructura**: Docker & Docker Compose (Contenerización).
-- **Cloud**: Ubuntu Server en VPS (Clouding.io).
-- **Visualización**: Metabase (Business Intelligence Open Source).
-- **Control de Versiones**: Git & GitHub.
+```mermaid
+erDiagram
+    Artist ||--|{ Album : "tiene"
+    Album ||--|{ Track : "contiene"
+    Genre ||--|{ Track : "clasifica"
+    MediaType ||--|{ Track : "formato"
+    Track ||--|{ InvoiceLine : "en"
+    Invoice ||--|{ InvoiceLine : "tiene"
+    Customer ||--|{ Invoice : "compra"
+    Employee ||--|{ Customer : "soporta"
+    Employee ||--|{ Employee : "reporta_a"
 
-## 💻 Instalación y Despliegue
+    Artist {
+        int ArtistId PK
+        string Name
+    }
+    Album {
+        int AlbumId PK
+        string Title
+        int ArtistId FK
+    }
+    Track {
+        int TrackId PK
+        string Name
+        int AlbumId FK
+        int GenreId FK
+    }
+    Customer {
+        int CustomerId PK
+        string FirstName
+        string LastName
+        string Email
+    }
+    Invoice {
+        int InvoiceId PK
+        datetime InvoiceDate
+        numeric Total
+    }
 
-Este proyecto está completamente contenerizado ("Dockerized"). Gracias a la orquestación con **Docker Compose**, el despliegue del Data Warehouse, la ejecución del pipeline ETL y la configuración de la herramienta de visualización ocurren automáticamente con un solo comando.
+```
+
+**Limitaciones del modelo OLTP para análisis**:
+
+* Requiere 6+ JOINs para consultas analíticas básicas.
+* Alto costo computacional para agregaciones.
+* Diseñado para escritura (INSERT/UPDATE), no para lectura intensiva.
+
+### Esquema OLAP (Data Warehouse)
+
+El Data Warehouse implementa un **Star Schema** optimizado para consultas analíticas de alto rendimiento, alojado en el esquema `analytics`.
+
+#### Diagrama OLAP
+
+```mermaid
+erDiagram
+    fact_sales }|..|| dim_customer : "cliente"
+    fact_sales }|..|| dim_track : "producto"
+    fact_sales }|..|| dim_employee : "vendedor"
+    fact_sales }|..|| dim_date : "fecha"
+
+    fact_sales {
+        int sales_key PK
+        int quantity
+        numeric unit_price
+        numeric total_revenue
+        int customer_key FK
+        int track_key FK
+        int date_key FK
+    }
+    dim_customer {
+        int customer_key PK
+        string full_name
+        string country
+        string customer_segment
+    }
+    dim_track {
+        int track_key PK
+        string track_name
+        string genre_name
+        string media_type_name
+    }
+    dim_date {
+        int date_key PK
+        int year
+        int month
+        string is_weekend
+    }
+
+```
+
+**Ventajas del modelo OLAP**:
+
+* **Reducción de JOINs**: De 6+ a 1-2 uniones máximo.
+* **Performance**: Consultas drásticamente más rápidas.
+* **Desnormalización estratégica**: Datos redundantes para acelerar lectura.
+
+## 📊 Análisis Implementados
+
+### Segmentación RFM de Clientes
+
+El proyecto implementa un algoritmo de **RFM (Recency, Frequency, Monetary)** directamente en SQL mediante Window Functions (`NTILE`).
+
+**Lógica de Segmentación**:
+
+1. **Recencia (R)**: Días desde la última compra.
+2. **Frecuencia (F)**: Cantidad de facturas únicas.
+3. **Monetización (M)**: Total gastado histórico.
+
+| Segmento | Descripción | Estrategia Sugerida |
+| --- | --- | --- |
+| 🥇 **Campeones (VIP)** | Score RFM alto (R=5, F=5, M=5) | Programas de fidelidad exclusivos. |
+| 💎 **Leales Potenciales** | Compran seguido, buen gasto | Upselling y Cross-selling. |
+| ⚠️ **En Riesgo** | Gastaban mucho pero no volvieron | Campañas de reactivación agresivas. |
+| 💤 **Perdidos** | Baja frecuencia y recencia | Evaluar costo de retención vs adquisición. |
+
+### KPIs de Negocio
+
+El dashboard implementa los siguientes indicadores clave:
+
+#### KPIs Financieros
+
+| Métrica | Definición |
+| --- | --- |
+| **Total Revenue** | Suma total de facturación histórica. |
+| **AOV (Ticket Promedio)** | Ingreso promedio por transacción única. |
+
+#### KPIs Operativos
+
+| Métrica | Definición |
+| --- | --- |
+| **Top Géneros** | Géneros musicales con mayor volumen de ventas. |
+| **Top Países** | Regiones geográficas con mayor penetración de mercado. |
+| **Performance Empleados** | Ranking de ventas por agente de soporte. |
+
+## 🚀 Instalación y Configuración
 
 ### Requisitos Previos
-- Docker & Docker Compose instalados.
 
-### Pasos para Ejecutar:
+Antes de comenzar, asegúrese de tener instalado:
 
-1. **Clonar el repositorio**:
-   ```bash
-   git clone https://github.com/tu-usuario/chinook-strategy-center.git
-   cd chinook-strategy-center
-   ```
+* **Docker**: v20.10 o superior.
+* **Docker Compose**: v2.0 o superior (incluido en Docker Desktop).
+* **Git**: Para clonar el repositorio.
+* **Puertos Libres**: 3000 (Metabase), 5432 (Postgres), 5050 (pgAdmin).
 
-2. **Iniciar el entorno**:
-   
-   Ejecutar el siguiente comando en la raíz del proyecto. Esto descargará las imágenes, levantará los servicios y **ejecutará automáticamente los scripts de migración de datos (OLTP -> OLAP)**.
-   
-   ```bash
-   docker-compose up -d
-   ```
-   
-   *(Nota: El primer inicio puede demorar unos segundos mientras PostgreSQL procesa los scripts de inicialización).*
+### Pasos de Instalación
 
-3. **Acceder a los Servicios**:
+#### 1. Clonar el Repositorio
 
-   **A. Dashboard de Negocio (Metabase)**
-   
-   *El entorno levanta una instancia con tableros pre-cargados.*
-   
-   - **URL**: http://localhost:3000
-   - **Usuario**: `admin@chinook.com`
-   - **Contraseña**: `Devlights2024`
+```bash
+git clone https://github.com/tu-usuario/devlights-data-analysis-final-project.git
+cd devlights-data-analysis-final-project
+```
 
-   **B. Administración de Base de Datos (pgAdmin 4)**
-   
-   - **URL**: http://localhost:5050
-   - **Usuario**: `admin@chinook.com`
-   - **Contraseña**: `root`
-   - **Configuración de conexión al servidor**:
-     - Host name/address: `db`
-     - Username: `devlights_user`
-     - Password: `devlights_password`
+#### 2. Levantar la Infraestructura
 
-4. **Detener el entorno**:
-   ```bash
-   docker-compose down
-   ```
+Ejecute el siguiente comando en la raíz del proyecto:
+
+```bash
+docker compose up -d
+```
+
+**¿Qué sucede al ejecutar esto?**
+
+1. Descarga las imágenes de Postgres, Metabase y pgAdmin.
+2. Crea la red `chinook_net`.
+3. Inicia la base de datos `chinook`.
+4. Ejecuta `01_oltp.sql` (Crea tablas fuente).
+5. Ejecuta `02_olap.sql` (Crea DW y procesa datos).
+6. Inicia Metabase y restaura el dashboard desde el backup local.
+
+> ⏳ **Nota**: El primer inicio puede demorar unos 60 segundos mientras se inicializan los servicios.
+
+#### 3. Verificar Estado
+
+```bash
+docker compose ps
+```
+
+Todos los contenedores (`chinook_db`, `chinook_bi`, `chinook_pgadmin`) deberían estar en estado "Up" o "Running".
+
+### Acceso a Servicios
+
+#### 📊 A. Dashboard de Negocio (Metabase)
+
+El sistema ya viene con usuarios y dashboards precargados.
+
+* **URL**: [http://localhost:3000](https://www.google.com/search?q=http://localhost:3000)
+* **Email**: `admin@devlights.com`
+* **Password**: `helloworld2025`
+
+#### 🛠️ B. Administración de Base de Datos (pgAdmin 4)
+
+Para inspección técnica y consultas SQL manuales.
+
+* **URL**: [http://localhost:5050](https://www.google.com/search?q=http://localhost:5050)
+* **Email**: `admin@chinook.com`
+* **Password**: `root`
+
+**Datos para conectar el servidor (Register Server):**
+
+* **Host name**: `db`
+* **Username**: `devlights_user`
+* **Password**: `devlights_password`
+* **Database**: `chinook`
+
+## 📁 Estructura del Proyecto
+
+```
+devlights-data-analysis-final-project/
+│
+├── docker-compose.yml          # Orquestación de contenedores
+│
+├── assets/                     # Scripts SQL de inicialización
+│   ├── 01_oltp.sql             # Script Fuente (OLTP)
+│   └── 02_olap.sql             # Script Data Warehouse (OLAP + ETL)
+│
+├── metabase_backup_data/       # Backup persistente del Dashboard
+│   └── metabase.db.mv.db       # Base de datos H2 de Metabase
+│
+└── README.md                   # Documentación del proyecto
+```
+
+## 🛠️ Stack Tecnológico
+
+| Componente | Tecnología | Versión | Uso |
+| --- | --- | --- | --- |
+| **Base de Datos** | PostgreSQL | 16 | Motor Relacional & Data Warehouse |
+| **Contenedores** | Docker | Latest | Empaquetado y ejecución |
+| **Orquestación** | Docker Compose | v2+ | Gestión de servicios y redes |
+| **Visualización** | Metabase | Latest | Dashboarding y BI |
+| **Administración** | pgAdmin 4 | Latest | GUI para PostgreSQL |
+| **Lenguaje** | SQL (PL/pgSQL) | Standard | Lógica de negocio y transformación |
+
+## 💡 Uso y Operación
+
+### Comandos Útiles
+
+**Detener el entorno (conservando datos):**
+
+```bash
+docker compose stop
+```
+
+**Reiniciar el entorno:**
+
+```bash
+docker compose start
+```
+
+**Destruir entorno (BORRA DATOS y volúmenes):**
+
+```bash
+docker compose down -v
+```
+
+*⚠️ Útil si quieres reiniciar la base de datos desde cero para volver a correr los scripts SQL.*
+
+**Ver logs de la base de datos:**
+
+```bash
+docker logs -f chinook_db
+
+```
+
+---
+
+## 🔧 Troubleshooting
+
+### Problema: "Container chinook_db is unhealthy"
+
+* **Causa**: El script SQL falló o tardó demasiado.
+* **Solución**: Revisa los logs con `docker logs chinook_db`. Si hubo un error en los scripts, corrige el SQL y ejecuta `docker compose down -v` seguido de `docker compose up -d`.
+
+### Problema: Metabase pide configuración inicial (Setup)
+
+* **Causa**: No leyó correctamente el archivo de backup.
+* **Solución**: Asegúrate de que la carpeta `metabase_backup_data` contenga el archivo `metabase.db.mv.db` directamente (sin subcarpetas extra) y reinicia el contenedor `chinook_bi`.
+
+### Problema: Puerto ocupado (Bind for 0.0.0.0:3000 failed)
+
+* **Causa**: Otro servicio en tu PC usa el puerto 3000.
+* **Solución**: Edita `docker-compose.yml` y cambia el mapeo de puertos de Metabase a `"3001:3000"`.
+
+## 🤝 Contribución
+
+Las contribuciones son bienvenidas. Para cambios importantes:
+
+1. Fork el repositorio.
+2. Crea una rama (`git checkout -b feature/AmazingFeature`).
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`).
+4. Push a la rama (`git push origin feature/AmazingFeature`).
+5. Abre un Pull Request.
+
+## 📄 Licencia
+
+Este proyecto está bajo la Licencia MIT. Ver archivo `LICENSE` para más detalles.
+
+## 👤 Autor
+
+**Facundo Nicolás González**
+
+* **Proyecto**: Trabajo final Data Analytics - Devlights
+* **GitHub**: [@titesen](https://github.com/titesen)
+* **LinkedIn**: [Facundo González](https://www.linkedin.com/in/facundo-gonzalez)
+
+---
+
+*Última actualización: Diciembre 2025*
